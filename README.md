@@ -4,6 +4,6 @@ A web application where teachers and students can combine math and physics with 
 
 The system can be found online:
 
-(http://www.profyma.se)[http://www.profyna.se]
+http://www.profyma.se
 
 It was developed in 2013 as a project for Internetfonden.
