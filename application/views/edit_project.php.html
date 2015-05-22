@@ -1,0 +1,745 @@
+<?
+
+// hämta all data
+
+$project  = json_decode($projectdata['data'], true);
+$publicID = $projectdata['publicID'];
+$metadata = json_decode($projectdata['metadata'], true);
+$editors  = 0;
+$codetabs = 0;
+
+?>
+
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Profyma</title>
+    <link rel="stylesheet" href="/scripts/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="/scripts/jqsimplemenu/css/jqsimplemenu.css" />
+    <link rel="stylesheet" href="/styles/project.css">
+  </head>
+  <body>
+    <ul id="menu">
+      <li>
+        <a >Arkiv</a>
+        <ul>
+            <li>
+              <a onclick='saveAllCode();'>Spara allt</a>
+            </li>
+            <li>
+              <a href="http://profyma.se">Avsluta</a>
+            </li>
+          </ul>
+      </li>
+      <li>
+        <a >Redigera</a>
+        <ul>
+            <li>
+              <a >Ändra vyn</a>
+              <ul>
+                <a onclick='setLayout(0);'>Visa endast kod-flikarna</a>
+                <a onclick='setLayout(1);'>Visa endast text-flikarna</a>
+                <a onclick='setLayout(2);'>Visa endast det grafiska resultatet</a>
+                <a onclick='setLayout(3);'>Visa endast det textuella resultatet</a>
+                <a onclick='setLayout(10);'>Återställ</a>
+              </ul>
+            </li>
+            <li>
+              <a onclick='$("#prefsdialog").dialog("open");'>Ändra projektinställningar</a>
+            </li>
+          </ul>
+      </li>
+      <li>
+        <a >Kör kod</a>
+        <ul>
+<? $temp_editors = 0; foreach ($project as $key => $tab) { ?>
+          <li>
+            <a ><?= $tab['title'] ?></a>
+            <ul>
+<? foreach ($tab['code'] as $codekey => $code) { ?>
+              <li>
+                <a onclick='run(<?= $temp_editors++ ?>)'><?= $code['title'] ?></a>
+              </li>
+
+<? } ?>
+            </ul>
+          </li>
+<? } ?>
+        </ul>
+      </li>
+      <li><a onclick='$("#code-output").html("");'>Rensa textresultatet</a></li>
+      <li>
+        <a >Hjälp</a>
+        <ul>
+            <li class="ui-state-disabled">
+              <a >Manual</a>
+            </li>
+            <li class="ui-state-disabled">
+              <a >Om PROFYMA</a>
+            </li>
+          </ul>
+      </li>
+
+    </ul>
+
+    <div id="everything">
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {inlineMath: [['$','$']]},
+      showProcessingMessages: false,
+      messageStyle: "none",
+      linebreaks: {automatic: true}
+    });
+
+    </script>
+
+    <div class="tabs" id="left-menu">
+      <ul>
+<? foreach ($project as $key => $tab) { ?>
+        <li>
+          <a id="tab_link-<?= $key ?>" href="#tabs-<?= $key ?>">
+            <span><?= $tab['title'] ?></span>
+          </a>
+          <img onclick='$("#dialog_<?= $key ?>").dialog("open");' class="pen edit" src="http://selma.friskola.nu/images/pencil.png" />
+          <img onclick='$("#dialog_<?= $key ?>_trash").dialog("open");' class="trash edit" src="http://selma.friskola.nu/images/trashcan.png" />
+        </li>
+<? } ?>
+        <li class="addtab edit"><span style="font-size: 15px;cursor: pointer;" onclick='window.location.href="/e/<?= $ID ?>/addtab"'>+</span></li>
+      </ul>
+<? foreach ($project as $key => $tab) { ?>
+      <div id="tabs-<?= $key ?>" class="left-tab">
+        <div class="frames upper left upper-left">
+          <div class="text"><?= $tab['text'] ?></div>
+
+          <div title="Bekräfta radering av flik" class="dialog" id="dialog_<?= $key ?>_trash">
+            Vill du verkligen ta bort fliken: <br /><br />"<span id="dialog_<?= $key ?>_spantitle"><?= $tab['title'] ?></span>"<br /><br />
+            och all dess text samt kodflikar?<br /><br />
+            <button onclick='window.location="/e/<?= $ID ?>/deletetab/<?= $key ?>"'>Ta bort</button>
+          </div>
+          <div title="Editering av flik" class="dialog" id="dialog_<?= $key ?>">
+            Flik-titel: <input type="text" id="dialog_title_<?= $key ?>" value="<?= $tab['title'] ?>"/>
+            <br />
+            Text: 
+            <br />
+            <div class="dialog-text-wrapper">
+              <textarea class="dialog-text" id="dialog_text_<?= $key ?>"><?= $tab['text'] ?></textarea>
+            </div>
+            <br />
+            <button class="save_dialog_text" onclick='updateTab(<?= $key ?>, true)'>Spara</button>
+            <button class="apply_dialog_text" onclick='updateTab(<?= $key ?>, false)'>Verkställ</button>
+          </div>
+        </div>
+        <div id="codetab_<?= $codetabs++ ?>" class="frames lower left tabs lower-left">
+          <ul>
+<?
+ $tabs_i = 0;
+ foreach ($tab['code'] as $codekey => $code) { ?>
+            <li>
+              <img onclick='run(<?= $editors ?>)' class="small_icons" src="/images/run.png" />
+              <img onclick='saveCode(<?= $editors++ ?>, <?= $key ?>, <?= $codekey ?>)' class="small_icons" src="/images/save.png" />
+              <a id="tab_code_link-<?= $key ?>-<?= $codekey ?>" href="#tabs-<?= $key ?>_code-<?= $codekey ?>"><span><?= $code['title'] ?></span></a>
+              <img onclick='$("#codedialog_<?= $key ?>-<?= $codekey ?>").dialog("open");' class="pen edit" src="http://selma.friskola.nu/images/pencil.png" />
+              <img onclick='$("#codedialog_<?= $key ?>-<?= $codekey ?>_trash").dialog("open");' class="trash edit" src="http://selma.friskola.nu/images/trashcan.png" />
+              
+            </li>
+<? $tabs_i++; } ?>
+            <li class="addtab edit"><span style="font-size: 15px;cursor: pointer;" onclick='window.location.href="/e/<?= $ID ?>/addcodetab/<?= $key ?>"'>+</span></li>
+          </ul>
+<? foreach ($tab['code'] as $codekey => $code) { ?>
+          <div title="Editering av kodflik" class="dialog" id="codedialog_<?= $key ?>-<?= $codekey ?>">
+            Flik-titel: <input type="text" id="code_title_<?= $key ?>-<?= $codekey ?>" value="<?= $code['title'] ?>"/>
+            <br />
+            <button onclick='updateCodeTab(<?= $key ?>, <?= $codekey ?>)'>Spara</button>
+          </div>
+          <div title="Bekräfta radering av kodflik" class="dialog" id="codedialog_<?= $key ?>-<?= $codekey ?>_trash">
+            Vill du verkligen ta bort kodfliken: <br /><br />"<span id="dialog_<?= $key ?>_<?= $codekey ?>_spantitle"><?= $code['title'] ?></span>"<br /><br />
+            <button onclick='window.location="/e/<?= $ID ?>/deletecodetab/<?= $key ?>/<?= $codekey ?>"'>Ta bort</button>
+          </div>
+
+          <div id="tabs-<?= $key ?>_code-<?= $codekey ?>">
+            <textarea id="tabs-<?= $key ?>_code-<?= $codekey ?>_editor"><?= $code['code']?></textarea>
+          </div>
+<? } ?>
+        </div>
+      </div>
+<? } ?>
+    </div> <!-- Slut på vänstermeny -->
+
+    <div class="frames upper right" id="upper-right"><iframe id="preview"></iframe></div>
+
+    <div class="frames lower right" id="lower-right"><div id="code-output"></div></div>
+
+    <div title="Inställningar" class="dialog" id="prefsdialog">
+      Gå in i editeringsläge: <input type="checkbox" id="toggleEdit" /><br /> 
+      <h3>Projektdetaljer:</h3>
+      <table>
+        <tr>
+          <td>
+            Hemlig länk:
+          </td>
+          <td>
+            <a href="http://profyma.se/e/<?= $ID ?>">http://profyma.se/e/<?= $ID ?></a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Publik länk:
+          </td>
+          <td>
+            <a href="http://profyma.se/p/<?= $publicID ?>">http://profyma.se/p/<?= $publicID ?></a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Titel: 
+          </td>
+          <td>
+            <input type="text" id="project_title" value="<?= $metadata['title'] ?>"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Skapare: 
+          </td>
+          <td>
+            <input type="text" id="project_author" value="<?= $metadata['author'] ?>"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Publik: 
+          </td>
+          <td>
+            <input type="checkbox" id="project_public" <?= $metadata['public'] == 'true' ? "CHECKED" : "" ?>/>
+          </td>
+        </tr>
+      </table>
+      <h4>Kategorier:</h4>
+      <table>
+        <tr>
+          <td><input type="checkbox" id="cat_m1" class="categories" value="0" <?= $metadata['categories'][0] ? "CHECKED" : "" ?>/><label for="cat_m1">Matematik 1</label></td>
+          <td><input type="checkbox" id="cat_f1" class="categories" value="5" <?= $metadata['categories'][5] ? "CHECKED" : "" ?>/><label for="cat_f1">Fysik 1</label></td>
+          <td><input type="checkbox" id="cat_p1" class="categories" value="8" <?= $metadata['categories'][8] ? "CHECKED" : "" ?>/><label for="cat_p1">Programmering 1</label></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="cat_m2" class="categories" value="1" <?= $metadata['categories'][1] ? "CHECKED" : "" ?>/><label for="cat_m2">Matematik 2</label></td>
+          <td><input type="checkbox" id="cat_f2" class="categories" value="6" <?= $metadata['categories'][6] ? "CHECKED" : "" ?>/><label for="cat_f2">Fysik 2</label></td>
+          <td><input type="checkbox" id="cat_p2" class="categories" value="9" <?= $metadata['categories'][9] ? "CHECKED" : "" ?>/><label for="cat_p2">Programmering 2</label></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="cat_m3" class="categories" value="2" <?= $metadata['categories'][2] ? "CHECKED" : "" ?>/><label for="cat_m3">Matematik 3</label></td>
+          <td><input type="checkbox" id="cat_f3" class="categories" value="7" <?= $metadata['categories'][7] ? "CHECKED" : "" ?>/><label for="cat_f3">Fysik 3</label></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="cat_m4" class="categories" value="3" <?= $metadata['categories'][3] ? "CHECKED" : "" ?>/><label for="cat_m4">Matematik 4</label></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="cat_m5" class="categories" value="4" <?= $metadata['categories'][4] ? "CHECKED" : "" ?>/><label for="cat_m5">Matematik 5</label></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+
+      </table>
+      <button onclick='updateProjectDetails()'>Spara detaljer</button>
+      
+    </div>
+    </div>
+
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
+    <script src="/scripts/codemirror/lib/codemirror.js"></script>
+    <script src="/scripts/codemirror/mode/xml/xml.js"></script>
+    <script src="/scripts/codemirror/mode/javascript/javascript.js"></script>
+    <script src="/scripts/codemirror/mode/css/css.js"></script>
+    <script src="/scripts/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+    <script src="/scripts/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="/scripts/jquery.ui.touch-punch.min.js"></script>
+    <script src="/scripts/tabs-fix.js"></script>
+    <script src="/scripts/markdown.js"></script>
+    <script src="/scripts/jqsimplemenu/js/jqsimplemenu.js"></script>
+    <script>
+
+      var hasChanged = {};
+      var changedTab = {};
+
+      window.onbeforeunload = checkForUnsavedChanges;
+
+      $("#menu").jqsimplemenu();
+
+      function checkForUnsavedChanges()
+      {
+        for (index in hasChanged)
+          if (hasChanged[index])
+            return "Du har osparade ändringar, vill du verkligen navigera bort från systemet?";
+      }
+
+      $('.text').each(function()
+                {
+                  $(this).html(markdown.toHTML($(this).html()));
+                });
+
+      function fixMath()
+      {
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+
+      }
+
+      setTimeout(fixMath, 5000);
+ 
+      $('#toggleArrows').change(function () 
+      {
+        $(".arrows").toggle();
+        $.ajax({ url:     "/e/<?= $ID ?>/togglearrows", 
+                 type:    "POST",
+                 data:    {toggle: 1},
+                 success: function() { },
+                 error:   function() { }
+          });
+      });
+
+
+      $('#toggleEdit').change(function () 
+      {
+        $(".edit").toggle();
+        $.ajax({ url:     "/e/<?= $ID ?>/toggleedit", 
+                 type:    "POST",
+                 data:    {toggle: 1},
+                 success: function() { },
+                 error:   function() { }
+          });
+      });
+      
+      function updateTab(id, close)
+      {
+        var data = {title: $("#dialog_title_"+id).val(),
+                    text: $("#dialog_text_"+id).val()};
+      
+        $("#tab_link-"+id+" span").html(data.title);
+        $("#dialog_"+id+"_spantitle").html(data.title);
+
+        $("#tabs-"+id+" div.text").html(markdown.toHTML(data.text));
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+
+        $.ajax({ url:     "/e/<?= $ID ?>/updatetab/"+id, 
+                 type:    "POST",
+                 data:    data,
+                 success: function() { if (close) $("#dialog_"+id).dialog("close"); },
+                 error:   function() { alert("Kommunikationen med servern misslyckades. Försök igen eller spara all text lokalt."); }
+          });
+      }
+      
+      function updateProjectDetails()
+      {
+        var categories = [];
+        $('.categories').each(function () {
+            if ($(this).is(":checked"))
+              categories[$(this).val()] = 1;
+            else
+              categories[$(this).val()] = 0;
+          });
+
+        var data = {title: $("#project_title").val(),
+                    author: $("#project_author").val(),
+                    public: $("#project_public").is(":checked"),
+                    categories: categories};
+
+      
+        $.ajax({ url:     "/e/<?= $ID ?>/updatemetadata", 
+                 type:    "POST",
+                 data:    data,
+                 success: function() { $("#prefsdialog").dialog("close"); },
+                 error:   function() { alert("Kommunikationen med servern misslyckades. Försök igen eller spara all text lokalt."); }
+          });
+      }
+      
+      function updateCodeTab(tab, code)
+      {
+        var data = {title: $("#code_title_"+tab+"-"+code).val()};
+        $("#tab_code_link-"+tab+"-"+code+" span").html(data.title);
+        $("#dialog_"+tab+"_"+code+"_spantitle").html(data.title);      
+
+        $.ajax({ url:     "/e/<?= $ID ?>/updatecodetitle/"+tab+"/"+code, 
+                 type:    "POST",
+                 data:    data,
+                 success: function() { $("#codedialog_"+tab+"-"+code).dialog("close"); },
+                 error:   function() { alert("Kommunikationen med servern misslyckades. Försök igen eller spara all text lokalt."); }
+          });
+      }
+
+      function saveCode(editor, tab, code)
+      {
+        var curr = editors[editor];
+      
+        var data = {code: curr.getValue()};
+      
+        $.ajax({ url:     "/e/<?= $ID ?>/updatecode/"+tab+"/"+code, 
+                 type:    "POST",
+                 data:    data,
+                 success: function() 
+                          {
+                            if (hasChanged['tabs-'+tab+'_code-'+code+'_editor'])
+                            {
+                              var oldHTML = $('#tab_code_link-'+tab+'-'+code).html();
+                              $('#tab_code_link-'+tab+'-'+code).html(oldHTML.slice(0, - 1));
+                            }
+                            hasChanged['tabs-'+tab+'_code-'+code+'_editor'] = false;
+                            changedTab['tabs-'+tab]--; 
+                            if (changedTab['tabs-'+tab] == 0)
+                            {
+                              var oldHTML = $('#tab_link-'+tab).html();
+                              $('#tab_link-'+tab).html(oldHTML.slice(0, - 1));
+                              $('#tab_link-'+tab).css("font-weight", "normal");
+                              $('#tab_link-'+tab).css("text-decoration", "none");
+                            }
+                            $('#tab_code_link-'+tab+'-'+code).css("font-weight", "normal");
+                            $('#tab_code_link-'+tab+'-'+code).css("text-decoration", "none");
+                          },
+                 error:   function() { alert("Kommunikationen med servern misslyckades. Försök igen eller spara all text lokalt."); }
+          });
+        
+      }
+        
+      function saveAllCode()
+      {
+<? $temp_editors = 0; foreach ($project as $key => $tab) { ?>
+<? foreach ($tab['code'] as $codekey => $code) { ?>
+          saveCode(<?= $temp_editors++ ?>, <?= $key ?>, <?= $codekey ?>);
+<? }} ?>        
+      }
+
+
+      $("#left-menu").tabs().scrollabletab();
+<? for ($i = 0; $i < $codetabs; $i++) { ?>
+      $("#codetab_<?= $i ?>").tabs().scrollabletab();
+<? } ?>
+
+
+      $(".tabs").on( "tabsbeforeactivate", function( event, ui ) { 
+                         setTimeout(function() { 
+                             $('.CodeMirror').each(function(i, el) { 
+                                 el.CodeMirror.refresh(); }); }, 10); });
+
+
+      $("li.addtab a").unbind('click');
+      $("li.addtab a").unbind('select');
+      
+      $(".dialog").dialog({ autoOpen: false, width: '710px', height: 500 });
+
+
+      function createEditor(tab, code)
+      {
+        var newEditor = CodeMirror.fromTextArea(document.getElementById('tabs-'+tab+'_code-'+code+'_editor'),
+        {
+          mode: 'text/javascript',
+          lineNumbers: true,
+          tabMode: 'indent',
+          matchBrackets: true
+        });
+
+        newEditor.on('change', function (cMirror) 
+                               { 
+                                 if (! hasChanged['tabs-'+tab+'_code-'+code+'_editor'])
+                                 {
+                                   var oldHTML = $('#tab_code_link-'+tab+'-'+code).html();
+                                   $('#tab_code_link-'+tab+'-'+code).html(oldHTML+"*");
+                                   changedTab['tabs-'+tab]++; 
+                                   if (changedTab['tabs-'+tab] == 1)
+                                   {
+                                     var oldHTML = $('#tab_link-'+tab).html();
+                                     $('#tab_link-'+tab).html(oldHTML+"*");
+                                   }
+                                 }
+                                 hasChanged['tabs-'+tab+'_code-'+code+'_editor'] = true; 
+                                 $('#tab_code_link-'+tab+'-'+code).css("font-weight", "bold");
+                                 $('#tab_code_link-'+tab+'-'+code).css("text-decoration", "underline");
+                                 $('#tab_link-'+tab).css("font-weight", "bold");
+                                 $('#tab_link-'+tab).css("text-decoration", "underline");
+                               } );
+
+        hasChanged['tabs-'+tab+'_code-'+code+'_editor'] = false; 
+        changedTab['tabs-'+tab] = 0; 
+
+        return newEditor;
+      }
+
+      var editors = [];
+
+<? foreach ($project as $key => $tab) { ?>
+  <? foreach ($tab['code'] as $codekey => $code) { ?>
+      editors.push(createEditor(<?= $key ?>,<?= $codekey ?>));
+  <? } ?>
+<? } ?>
+
+topLayout = 0;
+bottomLayout = 0;
+leftLayout = 0;
+rightLayout = 0;
+
+      function setLayout(i)
+      {
+        if (i == 0) // show code
+        {
+            setLayout(10);
+            $(".lower-left").animate({height: "100%"}, {duration: 500, queue: false});
+            $("#lower-right").animate({right: "-50%"}, {duration: 500, queue: false});
+            $(".lower-left").animate({width: "200%"}, {duration: 500, queue: false});
+            $("#upper-right").animate({right: "-50%"}, {duration: 500, queue: false});
+
+        }
+
+        if (i == 1) // show text
+        {
+            setLayout(10);
+            $(".upper-left").animate({width: "200%"}, {duration: 500, queue: false});
+            $("#upper-right").animate({right: "-50%"}, {duration: 500, queue: false});
+            $(".upper-left").animate({height: "100%"}, {duration: 500, queue: false});
+            $(".lower-left").animate({bottom: "-50%"}, {duration: 500, queue: false});
+            $("#lower-right").animate({right: "-50%"}, {duration: 500, queue: false});
+        }
+
+        if (i == 2) // show graphical output
+        {
+            setLayout(10);
+            $("#upper-right").animate({width: "100%", height: "100%"}, {duration: 500, queue: false});
+            $("#lower-right").animate({bottom: "-50%"}, {duration: 500, queue: false});
+            $(".lower-left").animate({bottom: "-50%"}, {duration: 500, queue: false});
+        }
+
+        if (i == 3) // show textual output
+        {
+            setLayout(10);
+            $("#lower-right").animate({width: "100%", height: "100%"}, {duration: 500, queue: false});
+        }
+
+        if (i == 10) // reset
+        {
+          $(".lower-left").animate({height: "50%", bottom: "0"}, {duration: 500, queue: false});
+          $(".upper-left").animate({width: "100%", height: "50%"}, {duration: 500, queue: false});
+          $("#upper-right").animate({right: "0", width: "50%", height: "50%"}, {duration: 500, queue: false});
+          $("#lower-right").animate({right: "0", bottom: "0", width: "50%", height: "50%"}, {duration: 500, queue: false});
+        }
+      }
+
+      function changeLayout(i)
+      {
+        if (i == 0) // left-arrow-top
+        {
+          if (topLayout == 0)
+          {
+            $("#upper-right").animate({width: "100%"}, 500);
+            $("#left-arrow-top").animate({left: "0"}, 500);
+            $("#right-arrow-top").animate({left: "0"}, 500);
+            topLayout = -1;
+          }
+          else if (topLayout == 1)
+          {
+            $(".upper-left").animate({width: "100%"}, 500);
+            $("#upper-right").animate({right: "0"}, 500);
+            $("#left-arrow-top").animate({left: "50%"}, 500);
+            $("#right-arrow-top").animate({left: "50%"}, 500);
+            topLayout = 0;
+          }
+
+        }
+        else if (i == 1) // left-arrow-bottom
+        {
+          if (bottomLayout == 0)
+          {
+            $("#lower-right").animate({width: "100%"}, 500);
+            $("#left-arrow-bottom").animate({left: "0"}, 500);
+            $("#right-arrow-bottom").animate({left: "0"}, 500);
+            bottomLayout = -1;
+          }
+          if (bottomLayout == 1)
+          {
+            $("#lower-right").animate({right: "0"}, 500);
+            $(".lower-left").animate({width: "100%"}, 500);
+            $("#left-arrow-bottom").animate({left: "50%"}, 500);
+            $("#right-arrow-bottom").animate({left: "50%"}, 500);
+            bottomLayout = 0;
+          }
+        }
+        else if (i == 2) // right-arrow-top
+        {
+          if (topLayout == 0)
+          {
+            $(".upper-left").animate({width: "200%"}, 500);
+            $("#upper-right").animate({right: "-50%"}, 500);
+            $("#left-arrow-top").animate({left: "100%"}, 500);
+            $("#right-arrow-top").animate({left: "100%"}, 500);
+            topLayout = 1;
+          }
+          else if (topLayout == -1)
+          {
+            $("#upper-right").animate({width: "50%"}, 500);
+            $("#left-arrow-top").animate({left: "50%"}, 500);
+            $("#right-arrow-top").animate({left: "50%"}, 500);
+            topLayout = 0;
+          }
+        }
+        else if (i == 3) // right-arrow-bottom
+        {
+          if (bottomLayout == -1)
+          {
+            $("#lower-right").animate({width: "50%"}, 500);
+            $("#left-arrow-bottom").animate({left: "50%"}, 500);
+            $("#right-arrow-bottom").animate({left: "50%"}, 500);
+            bottomLayout = 0;
+          }
+          else if (bottomLayout == 0)
+          {
+            $("#lower-right").animate({right: "-50%"}, 500);
+            $(".lower-left").animate({width: "200%"}, 500);
+            $("#left-arrow-bottom").animate({left: "100%"}, 500);
+            $("#right-arrow-bottom").animate({left: "100%"}, 500);
+            bottomLayout = 1;
+          }
+        }
+        else if (i == 4) // up-arrow-left
+        {
+          if (leftLayout == 0)
+          {
+            $(".lower-left").animate({height: "100%"}, 500);
+            $("#up-arrow-left").animate({top: "0"}, 500);
+            $("#down-arrow-left").animate({top: "0"}, 500);
+            leftLayout = -1;
+          }
+          else if (leftLayout == 1)
+          {
+            $(".upper-left").animate({height: "50%"}, 500);
+            $(".lower-left").animate({bottom: "0"}, 500);
+            $("#up-arrow-left").animate({top: "50%"}, 500);
+            $("#down-arrow-left").animate({top: "50%"}, 500);
+            leftLayout = 0;
+          }
+        }
+        else if (i == 5) // up-arrow-right
+        {
+          if (rightLayout == 0)
+          {
+            $("#lower-right").animate({height: "100%"}, 500);
+            $("#up-arrow-right").animate({top: "0"}, 500);
+            $("#down-arrow-right").animate({top: "0"}, 500);
+            rightLayout = -1;
+          }
+          else if (rightLayout == 1)
+          {
+            $("#upper-right").animate({height: "50%"}, 500);
+            $("#lower-right").animate({bottom: "0"}, 500);
+            $("#up-arrow-right").animate({top: "50%"}, 500);
+            $("#down-arrow-right").animate({top: "50%"}, 500);
+            rightLayout = 0;
+          }
+        }
+        else if (i == 6) // down-arrow-left
+        {
+          if (leftLayout == -1)
+          {
+            $(".lower-left").animate({height: "50%"}, 500);
+            $("#up-arrow-left").animate({top: "50%"}, 500);
+            $("#down-arrow-left").animate({top: "50%"}, 500);
+            leftLayout = 0;
+          }
+          else if (leftLayout == 0)
+          {
+            $(".upper-left").animate({height: "100%"}, 500);
+            $(".lower-left").animate({bottom: "-50%"}, 500);
+            $("#up-arrow-left").animate({top: "100%"}, 500);
+            $("#down-arrow-left").animate({top: "100%"}, 500);
+            leftLayout = 1;
+          }
+        }
+        else if (i == 7) // down-arrow-right
+        {
+          if (rightLayout == -1)
+          {
+            $("#lower-right").animate({height: "50%"}, 500);
+            $("#up-arrow-right").animate({top: "50%"}, 500);
+            $("#down-arrow-right").animate({top: "50%"}, 500);
+            rightLayout = 0;
+          }
+          else if (rightLayout == 0)
+          {
+            $("#upper-right").animate({height: "100%"}, 500);
+            $("#lower-right").animate({bottom: "-50%"}, 500);
+            $("#up-arrow-right").animate({top: "100%"}, 500);
+            $("#down-arrow-right").animate({top: "100%"}, 500);
+            rightLayout = 1;
+          }
+        }
+      }
+
+      function run(i) 
+      {
+        $("#preview").remove();
+        $("#upper-right").html('<'+'iframe id="preview"></iframe>');
+
+        var curr = editors[i];
+        previewFrame = document.getElementById('preview');
+        var preview =  previewFrame.contentDocument ||  previewFrame.contentWindow.document;
+
+        if (typeof(previewFrame.contentWindow.stopUpdate) != "undefined")
+          previewFrame.contentWindow.stopUpdate();
+
+        var tagSimple = '<'+'script src="http://spelprogrammering.nu/simple.js">';
+        var tagBib = '<'+'script src="/scripts/bib.js">';
+        var tagJquery = '<'+'script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">';
+        var tag = '<'+'script>';
+        var tagEnd = '<'+'/script>';
+
+        var code = "addVectors = math.addVectors;"+
+          "dotProduct = math.dotProduct;"+
+          "multiplyScalar = math.multiplyScalar;"+
+          "vectorMagnitude = math.vectorMagnitude;"+
+          "normalizeVector = math.normalizeVector;"+
+          "zoom(-100,100);";
+        
+        preview.open();
+
+        preview.write(tagJquery+tagEnd+tagBib+tagEnd+tagSimple+code+curr.getValue()+tagEnd);
+        preview.close();
+      }
+
+
+<? if (isset($_SESSION['edit']) && $_SESSION['edit'] == 'true') { ?>
+      $('#toggleEdit').prop('checked', true);
+      $(".edit").toggle();
+<? } ?>
+<? if (isset($_SESSION['arrows']) && $_SESSION['arrows'] == 'true') { ?>
+      $('#toggleArrows').prop('checked', true);
+      $(".arrows").toggle();
+<? } ?>
+
+//$(".ui-dialog").each(function()
+//  {
+//    $(this).css("height","500px");
+//  }
+//);
+
+    </script>
+
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-37609124-14']);
+      _gaq.push(['_trackPageview']);
+    
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    
+    </script>
+  </body>
+</html>

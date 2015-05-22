@@ -1,0 +1,86 @@
+<?
+
+//  $all_projects = get_public_projects();
+//  $projects = $all_projects['categorized'];
+//  $unsorted = $all_projects['unsorted'];
+
+//  $cat_i = 0;
+
+?>
+<? include $app_dir.'/views/head.php.html'; ?>
+
+      <h3 style="margin-left: 30px;">
+        Utvalda projekt:
+      </h3>
+
+      <p class="latest">
+        <ul>
+          <li><a href="http://profyma.se/p/y9a4tS">Hur fungerar PROFYMA?</a></li>
+          <li><a href="http://profyma.se/p/Ar4duJ">Stötar</a> <span class="cat">(Fysik 1, Fysik 2, Fysik 3, Matematik 1)</span></li>
+          <li><a href="http://profyma.se/p/p52gtk">Funktioner</a> <span class="cat">(Matematik 1)</span></li>
+          <li><a href="http://profyma.se/p/ap7w4H">Sannolikhetslära med tärningar</a> <span class="cat">(Matematik 1)</span></li>
+          <li><a href="http://profyma.se/p/JngZG2">Fritt fall</a> <span class="cat">(Fysik 1, Fysik 2, Matematik 1)</span></li>
+          <!-- <li><a href="http://profyma.se/p/8vwcpv">Vektorer</a> <span class="cat">(Matematik 1)</span></li> -->
+        </ul>
+      </p>
+
+      <h4 style="margin-left: 30px;font-size: 15px;width: 400px;">
+        Kontakta oss gärna om du har ett projekt som du vill visa upp
+        för resten av världen, så lägger vi upp det i listan ovan!
+      </h4>
+
+<? include $app_dir.'/views/footer.php.html'; ?>
+
+<? return; ?>
+
+      <h3 style="margin-left: 30px;">
+        Senast ändrade projekt:
+      </h3>
+      <p class="latest">
+<? foreach ($projects as $cat => $project_array) 
+{ 
+  if (count($project_array) == 0)
+    continue;
+
+  $cat_i++;
+?>
+
+  <div class="cat_title" onclick='$("#cat<?= $cat_i ?>").toggle();'><?= $cat ?> &darr;</div>
+  <ul id="cat<?= $cat_i ?>" class="category">
+<?
+
+  foreach ($project_array as $project)
+  {
+    $metadata = json_decode($project['metadata'], true);
+
+   ?>
+    <li><a href="http://profyma.se/p/<?= $project['publicID'] ?>"><?= $metadata['title'] ?></a></li>
+    <? }
+?>
+
+  </ul>
+
+<?
+} ?>
+
+<? if (count($unsorted) > 0) { ?>
+
+<div class="cat_title" onclick='$("#cat_unknown").toggle();'>Okategoriserat &darr;</div>
+<ul id="cat_unknown" class="category">
+
+<? foreach ($unsorted as $project) 
+{ 
+  $metadata = json_decode($project['metadata'], true);
+?>
+
+<li><a href="http://profyma.se/p/<?= $project['publicID'] ?>"><?= $metadata['title'] ?></a></li>    
+
+<? } ?>
+
+</ul>
+
+<? } ?>
+
+</p>
+
+<? include $app_dir.'/views/footer.php.html'; ?>

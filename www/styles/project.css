@@ -1,0 +1,363 @@
+body, html
+{
+  margin: 0;
+  padding: 0;
+  overflow:hidden;
+  height: 100%;
+  width: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+#everything
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 20px;
+    height: auto;
+    width: auto;
+}
+
+#menu
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: auto;
+    left: 0;
+    height: 20px;
+    z-index: 50000;
+}
+
+#menu, ul
+{
+    font-size: 10px;
+}
+
+
+#left-menu
+{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+.frames
+{
+  position: absolute;
+  width: 50%;
+  height: 50%;
+
+  display: block;
+
+  margin: 0;
+  padding: 0;
+
+}
+
+.ui-tabs .ui-tabs-nav li
+{
+    font-size: 10px;
+}
+
+.upper-left, .lower-left
+{
+  width: 100%;
+}
+
+.upper-left
+{
+    height:auto;
+    bottom:50%;
+
+    margin-top:35px;
+    margin-bottom:10px;
+    margin-right:0px;
+    margin-left:0px;
+}
+
+.upper
+{
+  top: 0;
+}
+
+.lower
+{
+  bottom: 0;
+}
+
+.left
+{
+  left: 0;
+}
+
+.right
+{
+  right: 0;
+}
+
+.CodeMirror-matchingbracket
+{
+  font-weight: bold;
+  color: brown !important;
+} 
+
+.CodeMirror
+{
+  position:absolute;
+  height:auto;
+  bottom:20px;
+  top:0px;
+  left:0;
+  right:0;
+  margin-top:31px;
+  margin-right:0px;
+  margin-left:0px;
+}
+
+.ui-widget-content
+{
+  border: 0;
+}
+
+#small-menu
+{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  height: 20px;
+  border: 1px solid black;
+  z-index: 100;
+}
+
+#lower-right
+{
+  white-space: pre;
+  overflow: scroll;
+  z-index: 1000;
+  background-color: white;
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+}
+
+#code-output
+{
+  font-family: courier;
+  padding: 1em;
+}
+
+#preview
+{
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 1000;
+}
+
+.run-code, .save-code
+{
+  position: fixed;
+  right: 50%;
+  z-index: 1001;
+  width: 100px;
+  height: 20px;
+}
+
+.run-code
+{
+  bottom: 20px;
+}
+.save-code
+{
+  bottom: 0px;
+}
+
+.pen, .trash
+{
+  height: 1em;
+  cursor: pointer;
+}
+
+.small_icons
+{
+  float: left;
+  margin-top: 0.3em;
+  height: 1.5em;
+  cursor: pointer;
+}
+
+.ui-dialog
+{
+  border: 1px solid black;
+  z-index: 1000000;
+  position: relative;
+}
+
+.dialog-text
+{
+  width: 100%;
+  height: 100%;
+}
+
+.dialog-text-wrapper
+{
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 65px;
+  bottom: 50px;
+  width: auto;
+  height: auto;
+  text-align: justify;
+}
+
+
+.dialog
+{
+
+}
+
+.save_dialog_text, .apply_dialog_text
+{
+  position: absolute;
+  bottom: 10px;
+  width: 100px;
+}
+
+.save_dialog_text
+{
+    left: 10px;
+}
+
+.apply_dialog_text
+{
+    left: 120px;
+}
+
+.arrows
+{
+  display: none;
+  position: absolute;
+  z-index: 2000;
+  font-size: 20px;
+  color: silver;
+  top: 50%;
+  left: 50%;
+}
+
+.text
+{
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  word-wrap:break-word;
+}
+
+#left-arrow-top
+{
+    margin-left: -20px;
+    margin-top: -100px;
+}
+
+#left-arrow-bottom
+{
+    margin-left: -20px;
+    margin-top: 100px;
+}
+
+#right-arrow-top
+{
+    margin-right: -20px;
+    margin-top: -100px;
+}
+
+#right-arrow-bottom
+{
+    margin-right: -20px;
+    margin-top: 100px;
+}
+
+#up-arrow-right
+{
+    margin-top: -20px;
+    margin-left: 100px;
+}
+
+#up-arrow-left
+{
+    margin-top: -20px;
+    margin-left: -100px;
+}
+
+#down-arrow-right
+{
+    margin-left: 100px;
+}
+
+#down-arrow-left
+{
+    margin-left: -100px;
+}
+
+.edit
+{
+  display: none;
+}
+
+.text
+{
+  position: relative;
+  text-align: justify;
+}
+
+.text h1, .text h2, .text h3, .text p, .text pre
+{
+  padding-top: 0px;
+  margin-top: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.text h1
+{
+    font-size: 20px;
+} 
+.text h2
+{
+    font-size: 17px;
+} 
+.text h3 
+{
+    font-size: 14px;
+} 
+
+.text p, .text li
+{
+    font-size: 13px;
+}
+
+.cm-comment
+{
+    color: rgb(0, 80, 200) !important;
+    font-weight: bold;
+}
+
+a
+{
+    cursor: pointer;
+}
+
+.text img
+{
+  width: 50%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
